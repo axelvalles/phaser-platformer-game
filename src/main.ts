@@ -6,14 +6,15 @@ import { Game as MainGame } from "./scenes/Game";
 
 import { Game, Types } from "phaser";
 
-//  Find out more information about the Game Config at:
-//  https://newdocs.phaser.io/docs/3.70.0/Phaser.Types.Core.GameConfig
 const config: Types.Core.GameConfig = {
   type: Phaser.AUTO,
   width: 540,
   height: 360,
   parent: "game-container",
+  title: "Phaser Platformer",
   backgroundColor: "#028af8",
+  disableContextMenu: true,
+  pixelArt: true,
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
@@ -23,9 +24,9 @@ const config: Types.Core.GameConfig = {
     arcade: {
       gravity: {
         x: 0,
-        y: 500,
+        y: 1000,
       },
-    //   debug: true,
+      //debug: import.meta.env.DEV,
     },
   },
   scene: [

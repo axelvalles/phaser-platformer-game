@@ -1,18 +1,21 @@
 import { Scene } from "phaser";
-import { backbroundMap, floorMap } from "../mapped/map-1";
+import { backbroundMap } from "../mapped/map-1";
+import { key } from "../constants";
+import { Player } from "../sprites/Player";
+import { Bat } from "../sprites/Bat";
 
 export class Game extends Scene {
-  keys: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
-  player: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+  private player: Player;
+  private bat: Bat;
   floor: Phaser.Physics.Arcade.StaticGroup;
 
   constructor() {
-    super("Game");
+    super(key.scene.Game);
   }
 
   preload() {
     this.load.spritesheet(
-      "characters",
+      key.spritesheet.characters,
       "assets/Tilemap/tilemap-characters.png",
       {
         frameWidth: 24,
@@ -21,14 +24,18 @@ export class Game extends Scene {
       }
     );
 
-    this.load.spritesheet("tilemap", "assets/Tilemap/tilemap.png", {
-      frameWidth: 18,
-      frameHeight: 18,
-      spacing: 1,
-    });
+    this.load.spritesheet(
+      key.tilemap.platformer,
+      "assets/Tilemap/tilemap.png",
+      {
+        frameWidth: 18,
+        frameHeight: 18,
+        spacing: 1,
+      }
+    );
 
     this.load.spritesheet(
-      "background",
+      key.tilemap.background,
       "assets/Tilemap/tilemap-backgrounds.png",
       {
         frameWidth: 24,
@@ -39,11 +46,7 @@ export class Game extends Scene {
   }
 
   create() {
-    //config
-    this.keys = this.input.keyboard?.createCursorKeys();
-
     // enviroment
-
     this.floor = this.physics.add.staticGroup();
 
     const numColumns = 30;
@@ -64,90 +67,22 @@ export class Game extends Scene {
       }
     }
 
-    for (let row = 0; row < numRows; row++) {
-      for (let col = 0; col < numColumns; col++) {
-        // Calcular el índice del tile en el array
-        const index = row * numColumns + col;
-        const tileIndex = floorMap[index] - 1;
-
-        if (tileIndex > -1) {
-          // Calcular las coordenadas x e y para cada tile
-          const x = col * 18;
-          const y = row * 18;
-
-          this.floor.create(x, y, "tilemap", tileIndex);
-
-          //   this.add.sprite(x, y, "tilemap", tileIndex);
-        }
-      }
+    for (let i = 0; i < 50; i++) {
+      this.floor.create(i * 18, 350, "tilemap", 0);
     }
 
     this.floor.refresh();
 
-    // entities
-    this.player = this.physics.add
-      .sprite(20, 100, "characters")
-      .setOrigin(0, 0)
-      .setCollideWorldBounds(true);
-    this.player.flipX = true;
+    this.player = new Player(this, 200, 200);
+
+    this.bat = new Bat(this, 200, 260);
 
     // colliders
     this.physics.add.collider(this.player, this.floor);
-
-    // animation
-    this.anims.create({
-      key: "player-walk",
-      frames: this.anims.generateFrameNumbers("characters", {
-        start: 0,
-        end: 1,
-      }),
-      frameRate: 10,
-      repeat: -1,
-    });
-
-    this.anims.create({
-      key: "player-idle",
-      frames: this.anims.generateFrameNumbers("characters", {
-        start: 0,
-        end: 0,
-      }),
-      repeat: -1,
-    });
-
-    this.anims.create({
-      key: "player-jump",
-      frames: this.anims.generateFrameNumbers("characters", {
-        start: 1,
-        end: 1,
-      }),
-      repeat: -1,
-    });
   }
 
   update(time: number, delta: number): void {
-    if (this.keys?.left.isDown) {
-      this.player.x -= 2;
-      this.player.flipX = false;
-
-      if (this.player.body.touching.down) {
-        this.player.anims.play("player-walk", true);
-      }
-    } else if (this.keys?.right.isDown) {
-      this.player.x += 2;
-      this.player.flipX = true;
-
-      if (this.player.body.touching.down) {
-        this.player.anims.play("player-walk", true);
-      }
-    } else {
-      if (this.player.body.touching.down) {
-        this.player.anims.play("player-idle", true);
-      }
-    }
-
-    if (this.keys?.up.isDown && this.player.body.touching.down) {
-      this.player.anims.play("player-jump", true);
-      this.player.setVelocityY(-250);
-    }
+    this.player.update();
+    this.bat.update();
   }
 }
